@@ -1,0 +1,40 @@
+pipeline {
+
+    agent any
+
+    stages {
+        stage('Contnuious Download') {
+            steps {
+            git branch: 'main', url: 'https://github.com/sagam-mahadik/Maven-Tomcat.git'
+            }
+        }
+   
+        stage('Continuous builds') {
+            steps {
+            sh 'mvn package'
+            }
+        }
+
+        stage('continous delivery') {
+            steps {
+            deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'sagar', path: '', url: 'http://172.31.23.40:8080')], contextPath: 'webapp', war: '**/*.war'
+            }
+        }
+
+        stage('Continuous Test') {
+            steps {
+            git branch: 'main', url: 'https://github.com/sagam-mahadik/Functional-Testing.git'
+
+            sh 'java -jar /var/lib/jenkins/workspace/Dev/testing.jar'
+            }
+        }
+
+
+        stage('Continuous Deployment') {
+            steps {
+            deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'sagar', path: '', url: 'http://172.31.18.149:8080')], contextPath: 'testapp', war: '**/*.war'
+
+            }
+        }
+    }  
+}
